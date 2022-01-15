@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  ps_master:
+    container_name: ps_master
+    image: docker.io/bitnami/postgresql:11
+    ports:
+      - '5555:5432'
+    volumes:
+      - './postgresql_master_data:/bitnami/postgresql'
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_slave
+      - POSTGRESQL_REPLICATION_PASSWORD=my_password
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=my_password
+      - POSTGRESQL_DATABASE=my_database
+
+  ps_slave:
+    container_name: ps_slave
+    image: docker.io/bitnami/postgresql:11
+    ports:
+      - '5556:5432'
+    volumes:
+      - './postgresql_master_data_slave1:/bitnami/postgresql'
+    depends_on:
+      - ps_master
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_REPLICATION_USER=repl_slave
+      - POSTGRESQL_REPLICATION_PASSWORD=my_password
+      - POSTGRESQL_MASTER_HOST=ps_master
+      - POSTGRESQL_PASSWORD=my_password
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+
+  ps_slave2:
+    container_name: ps_slave2
+    image: docker.io/bitnami/postgresql:11
+    ports:
+      - '5557:5432'
+    volumes:
+      - './postgresql_master_data_slave2:/bitnami/postgresql'
+    depends_on:
+      - ps_master
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_REPLICATION_USER=repl_slave
+      - POSTGRESQL_REPLICATION_PASSWORD=my_password
+      - POSTGRESQL_MASTER_HOST=ps_master
+      - POSTGRESQL_PASSWORD=my_password
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    ports:
+    - 8001:8080
+    environment:
+      ADMINER_DEFAULT_SERVER: ps_master 
